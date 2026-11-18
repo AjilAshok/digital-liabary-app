@@ -1,0 +1,139 @@
+@if (!showTable()) {
+  <ul class="viz-legend viz-legend--top">
+    @for (s of series(); track s.label) {
+      <li>
+        <span class="line-key" [style.background]="'var(--viz-' + s.slot + ')'"></span>{{ s.label }}
+        <span class="viz-legend__total">{{ formatCount(total(s.values)) }}</span>
+      </li>
+    }
+  </ul>
+  <div class="viz-plot">
+    <svg
+      [attr.width]="W()"
+      [attr.height]="H"
+      [attr.viewBox]="'0 0 ' + W() + ' ' + H"
+      role="img"
+      [attr.aria-label]="ariaLabel() + '. Use left and right arrow keys to read each month.'"
+      tabindex="0"
+      (pointermove)="onPointerMove($event)"
+      (pointerleave)="active.set(null)"
+      (focus)="active.set(months().length - 1)"
+      (blur)="active.set(null)"
+      (keydown)="onKey($event)"
+    >
+      @for (t of ticks(); track t) {
+        <line
+          class="viz-gridline"
+          [attr.x1]="M.left"
+          [attr.x2]="W() - M.right"
+          [attr.y1]="y(t)"
+          [attr.y2]="y(t)"
+        />
+        <text
+          class="viz-tick"
+          [attr.x]="M.left - 6"
+          [attr.y]="y(t)"
+          text-anchor="end"
+          dominant-baseline="middle"
+        >
+          {{ formatCount(t) }}
+        </text>
+      }
+      <line
+        class="viz-baseline"
+        [attr.x1]="M.left"
+        [attr.x2]="W() - M.right"
+        [attr.y1]="y(0)"
+        [attr.y2]="y(0)"
+      />
+      @for (m of months(); track m; let i = $index) {
+        @if (showLabel(i)) {
+          <text class="viz-tick" [attr.x]="x(i)" [attr.y]="H - 8" text-anchor="middle">
+            {{ formatMonth(m) }}
+          </text>
+        }
+      }
+
+      @if (active() !== null) {
+        <line
+          class="viz-crosshair"
+          [attr.x1]="x(active()!)"
+          [attr.x2]="x(active()!)"
+          [attr.y1]="M.top"
+          [attr.y2]="y(0)"
+        />
+      }
+
+      @for (s of series(); track s.label) {
+        <path
+          class="viz-line"
+          [attr.d]="path(s.values)"
+          [style.stroke]="'var(--viz-' + s.slot + ')'"
+        />
+        @let last = s.values.length - 1;
+        <circle
+          class="viz-dot"
+          [attr.cx]="x(active() ?? last)"
+          [attr.cy]="y(s.values[active() ?? last])"
+          r="4"
+          [style.fill]="'var(--viz-' + s.slot + ')'"
+        />
+        @if (endLabelsFit() && active() === null) {
+          <text
+            class="viz-end-label"
+            [attr.x]="x(last) + 8"
+            [attr.y]="y(s.values[last])"
+            dominant-baseline="middle"
+          >
+            {{ formatCount(s.values[last]) }}
+          </text>
+        }
+      }
+    </svg>
+
+    @if (active() !== null) {
+      <div
+        class="viz-tooltip viz-tooltip--floating"
+        role="tooltip"
+        [style.left.%]="tooltipLeft(active()!)"
+      >
+        <span>{{ formatMonth(months()[active()!]!, true) }}</span>
+        @for (s of series(); track s.label) {
+          <span class="viz-tooltip__row">
+            <span class="line-key" [style.background]="'var(--viz-' + s.slot + ')'"></span>
+            <strong>{{ formatCount(s.values[active()!]) }}</strong> {{ s.label }}
+          </span>
+        }
+      </div>
+    }
+  </div>
+} @else {
+  <table class="viz-table">
+    <caption class="cdk-visually-hidden">
+      {{
+        ariaLabel()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Month</th>
+        @for (s of series(); track s.label) {
+          <th scope="col" class="num">{{ s.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (m of months(); track m; let i = $index) {
+        <tr>
+          <th scope="row">{{ formatMonth(m, true) }}</th>
+          @for (s of series(); track s.label) {
+            <td class="num">{{ formatCount(s.values[i]) }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+<button mat-button type="button" class="viz-toggle" (click)="showTable.set(!showTable())">
+  {{ showTable() ? 'Show chart' : 'Show table' }}
+</button>

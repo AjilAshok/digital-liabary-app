@@ -1,0 +1,86 @@
+@if (!showTable()) {
+  @if (total() === 0) {
+    <p class="viz-empty">No {{ unit() }} to show yet.</p>
+  } @else {
+    <div class="seg-bar" role="img" [attr.aria-label]="summary()">
+      @for (p of parts(); track p.label; let i = $index) {
+        @if (p.value > 0) {
+          <div
+            class="seg"
+            [style.flex-grow]="p.value"
+            [style.background]="'var(--viz-' + p.slot + ')'"
+            [style.color]="'var(--viz-' + p.slot + '-ink)'"
+            [class.seg--hover]="hovered() === i"
+            tabindex="0"
+            [attr.aria-label]="
+              p.label + ': ' + formatCount(p.value) + ' ' + unit() + ', ' + p.shareText
+            "
+            (pointerenter)="hovered.set(i)"
+            (pointerleave)="hovered.set(null)"
+            (focus)="hovered.set(i)"
+            (blur)="hovered.set(null)"
+          >
+            @if (p.fits) {
+              <span aria-hidden="true">{{ p.shareText }}</span>
+            }
+            @if (hovered() === i) {
+              <div class="viz-tooltip viz-tooltip--below" role="tooltip">
+                <span
+                  ><strong>{{ formatCount(p.value) }}</strong> {{ unit() }} ·
+                  {{ p.shareText }}</span
+                >
+                <span>{{ p.label }}</span>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+    <ul class="viz-legend">
+      @for (p of parts(); track p.label) {
+        <li>
+          <span class="swatch" [style.background]="'var(--viz-' + p.slot + ')'"></span>{{ p.label }}
+        </li>
+      }
+    </ul>
+  }
+} @else {
+  <table class="viz-table">
+    <caption class="cdk-visually-hidden">
+      {{
+        ariaLabel()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Part</th>
+        <th scope="col" class="num">Count</th>
+        <th scope="col" class="num">Share</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of parts(); track p.label) {
+        <tr>
+          <th scope="row">{{ p.label }}</th>
+          <td class="num">{{ formatCount(p.value) }}</td>
+          <td class="num">{{ p.shareText }}</td>
+        </tr>
+      }
+    </tbody>
+    <tfoot>
+      <tr>
+        <th scope="row">Total</th>
+        <td class="num">{{ formatCount(total()) }}</td>
+        <td class="num">100%</td>
+      </tr>
+    </tfoot>
+  </table>
+}
+<button
+  mat-button
+  type="button"
+  class="viz-toggle"
+  (click)="showTable.set(!showTable()); measure()"
+>
+  {{ showTable() ? 'Show chart' : 'Show table' }}
+</button>

@@ -1,0 +1,121 @@
+@if (!showTable()) {
+  <div class="viz-plot">
+    <svg
+      [attr.width]="W()"
+      [attr.height]="H"
+      [attr.viewBox]="'0 0 ' + W() + ' ' + H"
+      role="img"
+      [attr.aria-label]="ariaLabel()"
+    >
+      @for (t of ticks(); track t) {
+        <line
+          class="viz-gridline"
+          [attr.x1]="M.left"
+          [attr.x2]="W() - M.right"
+          [attr.y1]="y(t)"
+          [attr.y2]="y(t)"
+        />
+        <text
+          class="viz-tick"
+          [attr.x]="M.left - 6"
+          [attr.y]="y(t)"
+          text-anchor="end"
+          dominant-baseline="middle"
+        >
+          {{ formatCount(t) }}
+        </text>
+      }
+      <line
+        class="viz-baseline"
+        [attr.x1]="M.left"
+        [attr.x2]="W() - M.right"
+        [attr.y1]="y(0)"
+        [attr.y2]="y(0)"
+      />
+      @for (d of data(); track d.month; let i = $index) {
+        @if (d.value > 0) {
+          <path
+            [attr.d]="columnPath(i, d.value)"
+            class="viz-column"
+            [class.viz-column--hover]="hovered() === i"
+          />
+        }
+        @if (i === maxIndex()) {
+          <text class="viz-cap" [attr.x]="x(i)" [attr.y]="y(d.value) - 6" text-anchor="middle">
+            {{ formatCount(d.value) }}
+          </text>
+        }
+        @if (showLabel(i)) {
+          <text class="viz-tick" [attr.x]="x(i)" [attr.y]="H - 8" text-anchor="middle">
+            {{ formatMonth(d.month) }}
+          </text>
+        }
+        <!-- Hit target: the full band, bigger than the mark. -->
+        <rect
+          class="viz-hit"
+          [attr.x]="x(i) - band() / 2"
+          [attr.y]="M.top"
+          [attr.width]="band()"
+          [attr.height]="H - M.top - M.bottom"
+          tabindex="0"
+          [attr.aria-label]="
+            formatMonth(d.month, true) + ': ' + formatCount(d.value) + ' ' + unit()
+          "
+          (pointerenter)="hovered.set(i)"
+          (pointerleave)="hovered.set(null)"
+          (focus)="hovered.set(i)"
+          (blur)="hovered.set(null)"
+        />
+      }
+    </svg>
+    @if (hovered() !== null) {
+      @let d = data()[hovered()!];
+      @if (d) {
+        <div
+          class="viz-tooltip viz-tooltip--floating"
+          role="tooltip"
+          [style.left.%]="tooltipLeft(hovered()!)"
+        >
+          <span
+            ><strong>{{ formatCount(d.value) }}</strong> {{ unit() }}</span
+          >
+          <span>{{ formatMonth(d.month, true) }}</span>
+          @for (line of d.details ?? []; track $index) {
+            <span>{{ line }}</span>
+          }
+        </div>
+      }
+    }
+  </div>
+} @else {
+  <table class="viz-table">
+    <caption class="cdk-visually-hidden">
+      {{
+        ariaLabel()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Month</th>
+        <th scope="col" class="num">{{ unit() }}</th>
+        @for (h of detailHeaders(); track h) {
+          <th scope="col" class="num">{{ h }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (d of data(); track d.month) {
+        <tr>
+          <th scope="row">{{ formatMonth(d.month, true) }}</th>
+          <td class="num">{{ formatCount(d.value) }}</td>
+          @for (line of d.details ?? []; track $index) {
+            <td class="num">{{ line }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+<button mat-button type="button" class="viz-toggle" (click)="showTable.set(!showTable())">
+  {{ showTable() ? 'Show chart' : 'Show table' }}
+</button>

@@ -1,0 +1,314 @@
+<app-page-header [title]="'Welcome, ' + firstName()" description="Your library at a glance.">
+  @if (summary().data; as s) {
+    <span class="updated">Updated {{ s.generatedAt | date: 'shortTime' }}</span>
+  }
+  <button mat-stroked-button type="button" (click)="load()" [disabled]="summary().loading">
+    <mat-icon>refresh</mat-icon> Refresh
+  </button>
+</app-page-header>
+
+<section class="section" aria-labelledby="quick-actions-title">
+  <h2 id="quick-actions-title">What would you like to do?</h2>
+  <div class="actions">
+    @for (a of quickActions(); track a.label) {
+      @if (a.route) {
+        <a mat-stroked-button [routerLink]="a.route"
+          ><mat-icon>{{ a.icon }}</mat-icon
+          >{{ a.label }}</a
+        >
+      } @else {
+        <button mat-stroked-button type="button" (click)="runAction(a)">
+          <mat-icon>{{ a.icon }}</mat-icon>{{ a.label }}
+        </button>
+      }
+    }
+  </div>
+</section>
+
+<!-- ── KPI tiles ─────────────────────────────────────────────────────────── -->
+<section
+  aria-label="Key figures"
+  class="section"
+  [class.refreshing]="summary().loading && summary().data"
+>
+  @if (summary().loading && !summary().data) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading key figures" />
+  }
+  @if (summary().error; as message) {
+    <div class="state-panel state-panel--error" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <p>Could not load key figures. {{ message }}</p>
+      <button mat-stroked-button type="button" (click)="load()">Try again</button>
+    </div>
+  }
+  @if (summary().data) {
+    <div class="tiles">
+      @for (t of mainTiles(); track t.label) {
+        <app-stat-tile
+          [label]="t.label"
+          [icon]="t.icon"
+          [value]="t.value"
+          [context]="t.context"
+          [status]="t.critical ? 'critical' : null"
+          [statusText]="t.statusText ?? ''"
+        />
+      }
+    </div>
+    <details class="section">
+      <summary>More library figures</summary>
+      <div class="tiles">
+        @for (t of otherTiles(); track t.label) {
+          <app-stat-tile
+            [label]="t.label"
+            [icon]="t.icon"
+            [value]="t.value"
+            [context]="t.context"
+            [status]="t.critical ? 'critical' : null"
+            [statusText]="t.statusText ?? ''"
+          />
+        }
+        @if (digitization(); as d) {
+          <app-stat-tile
+            label="Digitization progress"
+            icon="document_scanner"
+            [value]="d.percent !== null ? formatPercent(d.percent) : formatCount(d.legacyDigitized)"
+            [context]="
+              d.registerTotal !== null
+                ? formatCount(d.legacyDigitized) +
+                  ' of ' +
+                  formatCount(d.registerTotal) +
+                  ' register items'
+                : 'old-stock copies digitized · register total not set'
+            "
+          >
+            @if (d.percent !== null) {
+              <app-meter [value]="d.percent" ariaLabel="Digitization progress" />
+            }
+            <p class="tile-note">
+              {{ formatCount(d.pendingVerification) }} awaiting verification
+              @if (d.exceedsRegisterBy > 0) {
+                · {{ formatCount(d.exceedsRegisterBy) }} beyond the register total
+              }
+            </p>
+            @if (canSetTarget()) {
+              <button mat-button type="button" class="tile-action" (click)="openRegisterTotal()">
+                {{ d.registerTotal === null ? 'Set register total' : 'Change target' }}
+              </button>
+            }
+          </app-stat-tile>
+        }
+      </div>
+    </details>
+  }
+</section>
+
+<details class="section">
+  <summary>More library reports</summary>
+  <section
+    aria-label="Charts"
+    class="section charts"
+    [class.refreshing]="charts().loading && charts().data"
+  >
+    @if (charts().loading && !charts().data) {
+      <mat-progress-bar mode="indeterminate" aria-label="Loading charts" />
+    }
+    @if (charts().error; as message) {
+      <div class="state-panel state-panel--error" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <p>Could not load charts. {{ message }}</p>
+        <button mat-stroked-button type="button" (click)="load()">Try again</button>
+      </div>
+    }
+    @if (charts().data; as c) {
+      <mat-card appearance="outlined" class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Available vs issued</mat-card-title>
+          <mat-card-subtitle>Physical copies by lending state</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <app-segmented-bar
+            [segments]="availabilitySegments()"
+            ariaLabel="Copies by lending state"
+          />
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Old vs new stock</mat-card-title>
+          <mat-card-subtitle>Physical copies by how they were acquired</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <app-segmented-bar
+            [segments]="stockSegments()"
+            ariaLabel="Copies by acquisition source"
+          />
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Copies by category</mat-card-title>
+          <mat-card-subtitle>Largest categories; the rest are grouped</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <app-bar-list
+            [items]="categoryItems()"
+            ariaLabel="Copies by category"
+            emptyMessage="No copies have been catalogued yet."
+          />
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Monthly purchases</mat-card-title>
+          <mat-card-subtitle
+            >Purchased copies received per month · last 12 months</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <app-column-chart
+            [data]="purchaseColumns()"
+            ariaLabel="Purchased copies received per month"
+            unit="copies"
+            [detailHeaders]="['Invoices', 'Amount']"
+          />
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="chart-card chart-card--wide">
+        <mat-card-header>
+          <mat-card-title>Monthly issues and returns</mat-card-title>
+          <mat-card-subtitle
+            >Loans issued and returned per month · last 12 months ({{
+              c.timeZone
+            }})</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <app-line-chart
+            [months]="circulationMonths()"
+            [series]="circulationSeries()"
+            ariaLabel="Loans issued and returned per month"
+          />
+        </mat-card-content>
+      </mat-card>
+    }
+  </section>
+</details>
+
+<!-- ── Activity & quick actions ──────────────────────────────────────────── -->
+<section
+  aria-label="Activity"
+  class="section lists"
+  [class.refreshing]="activities().loading && activities().data"
+>
+  @if (activities().error; as message) {
+    <div class="state-panel state-panel--error" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <p>Could not load recent activity. {{ message }}</p>
+      <button mat-stroked-button type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
+  <mat-card appearance="outlined" class="list-card">
+    <mat-card-header>
+      <mat-card-title>Due and overdue returns</mat-card-title>
+      <mat-card-subtitle>Active loans, soonest first</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (activities().data; as a) {
+        @if (a.dueLoans.length === 0) {
+          <p class="empty">No books are on loan.</p>
+        } @else {
+          <ul class="rows">
+            @for (l of a.dueLoans; track l.id) {
+              <li>
+                <div class="row-main">
+                  <span class="row-title">{{ l.title }}</span>
+                  <span class="row-sub">
+                    {{ l.accessionNumber }}
+                    @if (l.member) {
+                      · {{ l.member.fullName }} ({{ l.member.membershipNumber }})
+                    }
+                  </span>
+                </div>
+                @if (l.overdue) {
+                  <span class="badge badge--critical">
+                    <mat-icon aria-hidden="true">warning</mat-icon>
+                    {{
+                      l.daysOverdue === 0
+                        ? 'Overdue today'
+                        : l.daysOverdue + (l.daysOverdue === 1 ? ' day' : ' days') + ' overdue'
+                    }}
+                  </span>
+                } @else {
+                  <span class="badge">Due {{ l.dueAt | date: 'mediumDate' }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      } @else if (activities().loading) {
+        <mat-progress-bar mode="indeterminate" aria-label="Loading loans" />
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="list-card">
+    <mat-card-header>
+      <mat-card-title>Recent additions</mat-card-title>
+      <mat-card-subtitle>Latest copies registered</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (activities().data; as a) {
+        @if (a.recentAdditions.length === 0) {
+          <p class="empty">No copies registered yet.</p>
+        } @else {
+          <ul class="rows">
+            @for (c of a.recentAdditions; track c.id) {
+              <li>
+                <div class="row-main">
+                  <span class="row-title">{{ c.title }}</span>
+                  <span class="row-sub"
+                    >{{ c.accessionNumber }} · {{ acquisitionLabel(c.acquisitionType) }}</span
+                  >
+                </div>
+                <span class="row-meta">{{ c.createdAt | date: 'mediumDate' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="list-card">
+    <mat-card-header>
+      <mat-card-title>Recent activity</mat-card-title>
+      <mat-card-subtitle>Latest recorded actions</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (activities().data; as a) {
+        @if (a.activity.length === 0) {
+          <p class="empty">No activity recorded yet.</p>
+        } @else {
+          <ul class="rows">
+            @for (e of a.activity; track e.id) {
+              <li>
+                <div class="row-main">
+                  <span class="row-title"
+                    >{{ e.actor ?? 'System' }} {{ activityText(e.action) }}</span
+                  >
+                  <span class="row-sub">{{ e.entityType }}</span>
+                </div>
+                <span class="row-meta">{{ e.createdAt | date: 'short' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

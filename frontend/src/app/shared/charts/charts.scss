@@ -1,0 +1,274 @@
+// Shared chart styles (dataviz method: thin marks, hairline recessive furniture, text in text tokens).
+:host {
+  display: block;
+  position: relative;
+}
+
+.viz-empty {
+  margin: 16px 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+// ── Tall segmented bar ───────────────────────────────────────────────────
+.seg-bar {
+  display: flex;
+  gap: 2px; // surface gap between parts
+  height: 28px;
+  margin: 8px 0 12px;
+}
+
+.seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 2px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font: var(--mat-sys-label-medium);
+  cursor: default;
+  outline-offset: 2px;
+  transition: filter 120ms ease;
+
+  &.seg--hover {
+    filter: brightness(1.08);
+  }
+}
+
+// ── Ranked bar list ──────────────────────────────────────────────────────
+.bar-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(96px, 34%) 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 2px 0;
+    border-radius: 4px;
+    outline-offset: 2px;
+  }
+}
+
+.bar-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--mat-sys-body-medium);
+}
+
+.bar-list__track {
+  height: 12px;
+}
+
+.bar-list__bar {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--viz-1);
+  border-radius: 0 4px 4px 0; // square at the baseline, rounded data end
+  transition: filter 120ms ease;
+
+  &.bar-list__bar--hover {
+    filter: brightness(1.1);
+  }
+}
+
+.bar-list__value {
+  font: var(--mat-sys-label-large);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  min-width: 3ch;
+}
+
+// ── SVG charts ───────────────────────────────────────────────────────────
+.viz-plot {
+  position: relative;
+
+  svg {
+    display: block;
+    max-width: 100%;
+    overflow: visible;
+    outline-offset: 4px;
+  }
+}
+
+.viz-gridline {
+  stroke: var(--viz-grid);
+  stroke-width: 1;
+}
+
+.viz-baseline {
+  stroke: var(--viz-axis);
+  stroke-width: 1;
+}
+
+.viz-tick {
+  fill: var(--viz-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.viz-cap,
+.viz-end-label {
+  fill: var(--mat-sys-on-surface);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.viz-column {
+  fill: var(--viz-1);
+  transition: filter 120ms ease;
+
+  &.viz-column--hover {
+    filter: brightness(1.12);
+  }
+}
+
+.viz-hit {
+  fill: transparent;
+  outline: none;
+
+  &:focus-visible {
+    stroke: var(--mat-sys-primary);
+    stroke-width: 2;
+  }
+}
+
+.viz-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.viz-dot {
+  stroke: var(--mat-sys-surface); // 2px surface ring
+  stroke-width: 2;
+}
+
+.viz-crosshair {
+  stroke: var(--viz-axis);
+  stroke-width: 1;
+}
+
+// ── Legend, tooltip, table, toggle ───────────────────────────────────────
+.viz-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.viz-legend--top {
+  margin-bottom: 8px;
+}
+
+.viz-legend__total {
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.line-key {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.viz-tooltip {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  font: var(--mat-sys-body-small);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--mat-sys-level2);
+
+  strong {
+    font: var(--mat-sys-title-small);
+  }
+}
+
+.viz-tooltip--below {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+
+.viz-tooltip--floating {
+  top: 0;
+  bottom: auto;
+  transform: translateX(-50%);
+}
+
+.viz-tooltip__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viz-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--mat-sys-body-small);
+
+  th,
+  td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    text-align: start;
+  }
+
+  thead th {
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 500;
+  }
+
+  .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.viz-toggle {
+  margin-top: 4px;
+}
+
+@media (forced-colors: active) {
+  .seg,
+  .bar-list__bar {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+}

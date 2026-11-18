@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: digital-library-test
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm --prefix backend ci && npm --prefix backend run prisma:generate && npm --prefix frontend ci && npm --prefix backend run build && npm --prefix frontend run build
+    startCommand: npm --prefix backend run prisma:deploy && npm --prefix backend run db:seed && node backend/dist/server.js
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: NODE_VERSION
+        value: 24.13.1
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_ADMIN_NAME
+        value: Library Administrator
+      - key: FRONTEND_DIST_DIR
+        value: frontend/dist/frontend/browser
+      - key: STORAGE_DIR
+        value: /tmp/digital-library-storage
+      - key: OCR_PROVIDER
+        value: disabled

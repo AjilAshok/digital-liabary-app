@@ -1,0 +1,104 @@
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    #sidenav
+    class="shell__nav"
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="!isHandset()"
+    [attr.role]="isHandset() ? 'dialog' : 'navigation'"
+    aria-label="Main navigation"
+  >
+    <div class="shell__brand">
+      <mat-icon aria-hidden="true">local_library</mat-icon>
+      <span>Digital Library</span>
+    </div>
+
+    @for (section of navigation(); track $index) {
+      <mat-nav-list>
+        @if (section.heading) {
+          <h2 class="shell__nav-heading">{{ section.heading }}</h2>
+        }
+        @for (item of section.items; track item.route) {
+          <a
+            mat-list-item
+            [routerLink]="item.route"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [activated]="rla.isActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            (click)="onNavigate()"
+          >
+            <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content class="shell__content">
+    <mat-toolbar class="shell__toolbar" role="banner">
+      @if (isHandset()) {
+        <button mat-icon-button type="button" aria-label="Open navigation" (click)="sidenav.open()">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+      <span class="shell__title">Library Management</span>
+      <span class="shell__spacer"></span>
+
+      @if (canFindBooks()) {
+        <a
+          mat-icon-button
+          routerLink="/catalogue/books"
+          aria-label="Find a book"
+          matTooltip="Find a book"
+        >
+          <mat-icon>search</mat-icon>
+        </a>
+      }
+      @if (user(); as u) {
+        <button
+          mat-button
+          type="button"
+          class="shell__user"
+          [matMenuTriggerFor]="userMenu"
+          [attr.aria-label]="'Account menu for ' + u.fullName"
+        >
+          <span class="shell__avatar" aria-hidden="true">{{ initials() }}</span>
+          @if (!isHandset()) {
+            <span class="shell__user-text">
+              <span class="shell__user-name">{{ u.fullName }}</span>
+              <span class="shell__user-role">{{ u.roles.join(', ') }}</span>
+            </span>
+          }
+          <mat-icon iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu" xPosition="before">
+          <div class="shell__menu-header" role="presentation">
+            <strong>{{ u.fullName }}</strong>
+            <span>{{ u.email }}</span>
+          </div>
+          <mat-divider />
+          <a mat-menu-item routerLink="/profile">
+            <mat-icon>account_circle</mat-icon>
+            <span>My profile</span>
+          </a>
+          <button mat-menu-item type="button" (click)="signOut()">
+            <mat-icon>logout</mat-icon>
+            <span>Sign out</span>
+          </button>
+          <button mat-menu-item type="button" (click)="signOut(true)">
+            <mat-icon>devices</mat-icon>
+            <span>Sign out on all devices</span>
+          </button>
+        </mat-menu>
+      }
+    </mat-toolbar>
+
+    <main id="main-content" class="shell__main" tabindex="-1">
+      <app-breadcrumbs />
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

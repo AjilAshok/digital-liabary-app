@@ -1,0 +1,58 @@
+.data-table {
+  position: relative;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mat-sys-surface);
+}
+
+.data-table__progress {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+}
+
+.data-table__scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.align-end {
+  text-align: end;
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+.data-table__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  p {
+    margin: 0;
+  }
+}
+
+.data-table__state--error mat-icon {
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 599.98px) {
+  .hide-mobile {
+    display: none;
+  }
+}

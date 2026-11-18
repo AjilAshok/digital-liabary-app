@@ -1,0 +1,99 @@
+<app-page-header
+  title="My profile"
+  description="Your account details, password and recent sign-in activity."
+/>
+
+<div class="profile-grid">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Account</mat-card-title>
+      @if (user(); as u) {
+        <mat-card-subtitle>{{ u.email }}</mat-card-subtitle>
+      }
+    </mat-card-header>
+    <mat-card-content>
+      @if (user(); as u) {
+        <mat-chip-set aria-label="Roles" class="roles">
+          @for (role of u.roles; track role) {
+            <mat-chip>{{ role }}</mat-chip>
+          }
+        </mat-chip-set>
+      }
+
+      @if (detailsError(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+      <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()" novalidate>
+        <mat-form-field class="full-width">
+          <mat-label>Full name</mat-label>
+          <input matInput formControlName="fullName" autocomplete="name" required />
+          <mat-error>
+            <app-field-error [control]="detailsForm.controls.fullName" label="Full name" />
+          </mat-error>
+        </mat-form-field>
+        <p class="note">Email and roles are managed by an administrator.</p>
+        <app-form-actions
+          submitLabel="Save"
+          [busy]="savingDetails()"
+          [disabled]="detailsForm.pristine"
+        />
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Change password</mat-card-title>
+      <mat-card-subtitle>Other devices will be signed out</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (passwordError(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+        <app-password-field
+          [control]="passwordForm.controls.currentPassword"
+          label="Current password"
+          autocomplete="current-password"
+        />
+        <app-password-field
+          [control]="passwordForm.controls.newPassword"
+          label="New password"
+          autocomplete="new-password"
+          hint="At least 10 characters with three of: lowercase, uppercase, digit, symbol"
+        />
+        <app-password-field
+          [control]="passwordForm.controls.confirmPassword"
+          label="Confirm new password"
+          autocomplete="new-password"
+        />
+        <app-form-actions
+          submitLabel="Change password"
+          busyLabel="Changing password"
+          [busy]="savingPassword()"
+        />
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<section class="activity" aria-labelledby="activity-heading">
+  <h2 id="activity-heading">Recent activity</h2>
+  <app-data-table
+    ariaLabel="Recent account activity"
+    [columns]="columns"
+    [rows]="activity()"
+    [total]="activityTotal()"
+    [pageIndex]="activityPage()"
+    [pageSize]="activityPageSize()"
+    [pageSizeOptions]="[10, 25, 50]"
+    [loading]="activityLoading()"
+    [error]="activityError()"
+    [trackBy]="trackById"
+    emptyMessage="No activity recorded yet."
+    (pageChange)="onActivityPage($event)"
+    (retry)="loadActivity()"
+  >
+    <ng-template appCell="createdAt" let-row>{{ row.createdAt | date: 'medium' }}</ng-template>
+  </app-data-table>
+</section>

@@ -1,0 +1,44 @@
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.roles {
+  display: block;
+  margin: 8px 0 16px;
+}
+
+.note {
+  margin: 0 0 8px;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.form-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.activity {
+  margin-top: 32px;
+
+  h2 {
+    margin: 0 0 12px;
+    font: var(--mat-sys-title-large);
+  }
+}
+
+@media (max-width: 599.98px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

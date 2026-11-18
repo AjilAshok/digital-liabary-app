@@ -1,0 +1,61 @@
+<app-page-header
+  title="Roles &amp; permissions"
+  description="Permissions are enforced by the server for every request. Each role below shows the actions its users may perform."
+/>
+
+@switch (state()) {
+  @case ('loading') {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading roles" />
+  }
+  @case ('error') {
+    <div class="state-panel state-panel--error" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <p>{{ errorMessage() }}</p>
+      <button mat-stroked-button type="button" (click)="load()">Try again</button>
+    </div>
+  }
+  @case ('loaded') {
+    @if (roleViews().length === 0) {
+      <div class="state-panel">
+        <mat-icon aria-hidden="true">group_off</mat-icon>
+        <p>No roles are defined yet. Run the database seed to create the system roles.</p>
+      </div>
+    } @else {
+      <mat-accordion multi>
+        @for (role of roleViews(); track role.id) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{ role.name }}
+                <span class="role-code">{{ role.code }}</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ role.permissions.length }} of {{ totalPermissions() }} permissions ·
+                {{ role.userCount }} {{ role.userCount === 1 ? 'user' : 'users' }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            @if (role.description) {
+              <p class="role-description">{{ role.description }}</p>
+            }
+            <div class="permission-grid">
+              @for (g of role.groups; track g.group) {
+                <section>
+                  <h3>{{ g.group }}</h3>
+                  <ul>
+                    @for (p of g.permissions; track p.code) {
+                      <li>
+                        <code>{{ p.code }}</code>
+                        <span>{{ p.description }}</span>
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
+            </div>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    }
+  }
+}

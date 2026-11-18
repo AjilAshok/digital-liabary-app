@@ -1,0 +1,116 @@
+@use '@angular/material' as mat;
+
+// Material 3 theme. `color-scheme: light dark` follows the operating-system preference.
+html {
+  color-scheme: light dark;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  // App-level tokens not covered by the Material system palette.
+  --app-success: light-dark(#1b7f3b, #6fdc8c);
+
+  // ── Data-visualisation tokens ────────────────────────────────────────────
+  // Categorical slots in FIXED order (never cycled), validated with the dataviz palette
+  // validator against the card surfaces (#faf9fd light / #121316 dark): all hard checks pass;
+  // light slots 3–4 are below 3:1 contrast, so charts using them print values or offer a table.
+  --viz-1: light-dark(#2a78d6, #3987e5); // blue
+  --viz-2: light-dark(#eb6834, #d95926); // orange
+  --viz-3: light-dark(#1baf7a, #199e70); // aqua
+  --viz-4: light-dark(#eda100, #c98500); // yellow
+  // Ink for labels printed INSIDE a fill (white, near-black on light yellow).
+  --viz-1-ink: #ffffff;
+  --viz-2-ink: #ffffff;
+  --viz-3-ink: #ffffff;
+  --viz-4-ink: light-dark(#0b0b0b, #ffffff);
+  // Meter track: a lighter step of the fill's own ramp.
+  --viz-track: light-dark(#cde2fb, #184f95);
+  // Chart furniture: hairline grid, baseline, muted axis text.
+  --viz-grid: light-dark(#e1e0d9, #2c2c2a);
+  --viz-axis: light-dark(#c3c2b7, #383835);
+  --viz-muted: #898781;
+  // Status (reserved for meaning; always paired with an icon + label).
+  --status-critical: #d03b3b;
+  --status-warning: #fab219;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+// Visible keyboard focus everywhere.
+:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 4px;
+    font: var(--mat-sys-headline-small);
+  }
+
+  p {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-medium);
+  }
+}
+
+// Shared loading / empty / error panel.
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  > mat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+  }
+
+  h1 {
+    margin: 0;
+    font: var(--mat-sys-headline-small);
+    color: var(--mat-sys-on-surface);
+  }
+
+  p {
+    margin: 0 0 8px;
+  }
+}
+
+.state-panel--error > mat-icon {
+  color: var(--mat-sys-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
